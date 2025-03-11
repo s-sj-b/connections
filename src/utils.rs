@@ -30,16 +30,16 @@ impl AnswerGroup {
 }
 
 pub const ANSWERS: [(AnswerGroup, &str, [&str; 4]); 4] = [
-    (AnswerGroup::Yellow, "Names for the evening meal", [
-        "Supper", "Tea", "Dinner", "Banquet"
+    (AnswerGroup::Yellow, "Reversible Letters", [
+        "Y", "O", "M", "H"
     ]),
-    (AnswerGroup::Green, "Palindromes", [
-        "Bob", "Dad", "Hannah", "Racecar"
+    (AnswerGroup::Green, "Text Abbreviations", [
+        "TTYL", "IYKYK", "ROFL", "LOL"
     ]),
-    (AnswerGroup::Blue, "Features of a wave", [
-        "Crest", "Speed", "Trough", "Break"
+    (AnswerGroup::Purple, "Firsts", [
+        "Melania Trump", "January", "A", "1"
     ]),
-    (AnswerGroup::Purple, "Words that become names without the E", [
-        "Seam", "Jean", "Bread", "Tome"
+    (AnswerGroup::Blue, "Names for People and Months", [
+        "August", "May", "April", "Julio"
     ])
 ];
