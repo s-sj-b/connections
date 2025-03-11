@@ -1,0 +1,21 @@
+[package]
+name = "connections"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "*"
+
+[dependencies.web-sys]
+version = "*"
+features = [
+    'Document',
+    'Element',
+    'HtmlElement',
+    'Node',
+    'Window',
+    'EventListener'
+]

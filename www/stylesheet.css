@@ -1,0 +1,93 @@
+
+:root {
+    --cell-width: 100px;
+    --cell-height: 100px;
+    --cell-margin:  10px;
+    --grid-column-width: calc(var(--cell-width) + var(--cell-margin));
+    --grid-width: calc(4 * (var(--cell-width) + var(--cell-margin)));
+    --grid-height: calc(4 * (var(--cell-height) + var(--cell-margin)));
+
+    --button-width: 75px;
+    --button-height: 35px;
+    --button-corner-radius: 15px;
+}
+
+button {
+    position: absolute;
+    width: var(--button-width);
+    height: var(--button-height);
+    background-color: #363251;
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-weight: bolder, bold;
+    color: #ccc;
+    left: calc(50% - var(--button-width) / 2);
+    top: calc(50% + 50px + var(--grid-height) / 2 - var(--button-height) / 2);
+    border-radius: var(--cell-margin)
+}
+
+div {
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-weight: bold;
+}
+
+div.answer-grid {
+    position: absolute;
+    top: calc(50% - var(--cell-margin) / 2);
+    left: calc(50% - var(--cell-margin) / 2);
+
+    width: calc(4 * (var(--cell-width) + var(--cell-margin)));
+    height: calc(4 * (var(--cell-height) + var(--cell-margin)));
+    margin-left: calc(-2 * (var(--cell-width) + var(--cell-margin)));
+    margin-top: calc(-2 * (var(--cell-height) + var(--cell-margin)));
+
+    display: grid;
+    grid-template-columns: var(--grid-column-width) var(--grid-column-width) var(--grid-column-width) var(--grid-column-width);
+    grid-template-rows: var(--grid-column-width) var(--grid-column-width) var(--grid-column-width) var(--grid-column-width);
+}
+
+div.button {
+    width: var(--cell-width);
+    height: var(--cell-height);
+    background-color: #ccc;
+    text-align: center;
+    vertical-align: middle;
+    line-height: var(--cell-height);
+    margin: var(--cell-margin);
+    border-radius: var(--cell-margin);
+}
+
+div.button-selected {
+    width: var(--cell-width);
+    height: var(--cell-height);
+    background-color: #aaa;
+    text-align: center;
+    vertical-align: middle;
+    line-height: var(--cell-height);
+    margin: var(--cell-margin);
+    border-radius: var(--cell-margin);
+}
+
+div.button:hover {
+    background-color: #aaa;
+}
+
+div.button-solved {
+    width: calc(4 * var(--cell-width) + 3 * var(--cell-margin));
+    height: var(--cell-height);
+    grid-column: span 4;
+    text-align: center;
+    vertical-align: middle;
+    line-height: var(--cell-height);
+    margin: var(--cell-margin);
+    margin-bottom: 0px;
+    border-radius: var(--cell-margin);
+}
+
+#lives-counter {
+    position: absolute;
+    width: var(--button-width);
+    height: 10px;
+    left: calc(50% - var(--button-width) / 2);
+    top: calc(50% + 25px + var(--grid-height) / 2 - var(--button-height) / 2);
+    text-align: center;
+}
