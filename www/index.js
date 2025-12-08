@@ -4,8 +4,6 @@ const wasm = await init();
 
 const WIDTH = 4;
 const HEIGHT = 4;
-const CELL_WIDTH = 100;
-const CELL_HEIGHT = 100;
 
 const ANSWERS = [
     {
