@@ -9,6 +9,17 @@ pub const SQUARE_GREEN     : u32 = 0xA0C35A;
 pub const SQUARE_BLUE      : u32 = 0xB0C4EF;
 pub const SQUARE_PURPLE    : u32 = 0xBA81C5;
 
+#[wasm_bindgen]
+extern "C" {
+    pub fn alert(s: &str);
+
+    #[wasm_bindgen(js_namespace = console)]
+    pub fn log(s: &str);
+
+    #[wasm_bindgen(js_namespace = Math)]
+    pub fn random() -> f32;
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[wasm_bindgen]
 pub enum AnswerGroup {
@@ -22,8 +33,8 @@ impl AnswerGroup {
     pub fn color(&self) -> u32 {
         match &self {
             AnswerGroup::Yellow => SQUARE_YELLOW,
-            AnswerGroup::Green => SQUARE_GREEN,
-            AnswerGroup::Blue => SQUARE_BLUE,
+            AnswerGroup::Green  => SQUARE_GREEN,
+            AnswerGroup::Blue   => SQUARE_BLUE,
             AnswerGroup::Purple => SQUARE_PURPLE,
         }
     }

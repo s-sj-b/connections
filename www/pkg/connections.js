@@ -166,6 +166,12 @@ function getDataViewMemory0() {
     }
     return cachedDataViewMemory0;
 }
+
+function takeFromExternrefTable0(idx) {
+    const value = wasm.__wbindgen_export_2.get(idx);
+    wasm.__externref_table_dealloc(idx);
+    return value;
+}
 /**
  * @param {string} s
  */
@@ -184,11 +190,6 @@ export function remove_element_by_id(id) {
     wasm.remove_element_by_id(ptr0, len0);
 }
 
-function takeFromExternrefTable0(idx) {
-    const value = wasm.__wbindgen_export_2.get(idx);
-    wasm.__externref_table_dealloc(idx);
-    return value;
-}
 /**
  * @enum {0 | 1 | 2 | 3}
  */
@@ -197,6 +198,14 @@ export const AnswerGroup = Object.freeze({
     Green: 1, "1": "Green",
     Blue: 2, "2": "Blue",
     Purple: 3, "3": "Purple",
+});
+/**
+ * @enum {0 | 1 | 2}
+ */
+export const SquareState = Object.freeze({
+    Plain: 0, "0": "Plain",
+    Selected: 1, "1": "Selected",
+    Answered: 2, "2": "Answered",
 });
 
 const AnswerGridFinalization = (typeof FinalizationRegistry === 'undefined')
@@ -225,21 +234,6 @@ export class AnswerGrid {
         wasm.__wbg_answergrid_free(ptr, 0);
     }
     /**
-     * @param {number} width
-     * @param {number} height
-     * @returns {AnswerGrid}
-     */
-    static new(width, height) {
-        const ret = wasm.answergrid_new(width, height);
-        return AnswerGrid.__wrap(ret);
-    }
-    setup() {
-        const ret = wasm.answergrid_setup(this.__wbg_ptr);
-        if (ret[1]) {
-            throw takeFromExternrefTable0(ret[0]);
-        }
-    }
-    /**
      * @returns {string}
      */
     lives_string() {
@@ -255,6 +249,13 @@ export class AnswerGrid {
         }
     }
     /**
+     * @param {number} x
+     * @param {number} y
+     */
+    toggle_square(x, y) {
+        wasm.answergrid_toggle_square(this.__wbg_ptr, x, y);
+    }
+    /**
      * @returns {boolean | undefined}
      */
     submit_selection() {
@@ -262,11 +263,19 @@ export class AnswerGrid {
         return ret === 0xFFFFFF ? undefined : ret !== 0;
     }
     /**
-     * @param {number} x
-     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @returns {AnswerGrid}
      */
-    toggle_square(x, y) {
-        wasm.answergrid_toggle_square(this.__wbg_ptr, x, y);
+    static new(width, height) {
+        const ret = wasm.answergrid_new(width, height);
+        return AnswerGrid.__wrap(ret);
+    }
+    setup() {
+        const ret = wasm.answergrid_setup(this.__wbg_ptr);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
+        }
     }
     /**
      * @returns {number}
@@ -319,17 +328,14 @@ export class Square {
         wasm.__wbg_square_free(ptr, 0);
     }
     /**
-     * @param {number} x
-     * @param {number} y
-     * @param {AnswerGroup} answer_group
-     * @param {string} text
-     * @returns {Square}
+     * @returns {AnswerGroup}
      */
-    static new(x, y, answer_group, text) {
-        const ptr0 = passStringToWasm0(text, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.square_new(x, y, answer_group, ptr0, len0);
-        return Square.__wrap(ret);
+    answer_group() {
+        const ret = wasm.square_answer_group(this.__wbg_ptr);
+        return ret;
+    }
+    update_color() {
+        wasm.square_update_color(this.__wbg_ptr);
     }
     /**
      * @returns {string}
@@ -346,14 +352,18 @@ export class Square {
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
     }
-    toggle() {
-        wasm.square_toggle(this.__wbg_ptr);
-    }
-    solve() {
-        wasm.square_solve(this.__wbg_ptr);
-    }
-    update_color() {
-        wasm.square_update_color(this.__wbg_ptr);
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {AnswerGroup} answer_group
+     * @param {string} text
+     * @returns {Square}
+     */
+    static new(x, y, answer_group, text) {
+        const ptr0 = passStringToWasm0(text, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.square_new(x, y, answer_group, ptr0, len0);
+        return Square.__wrap(ret);
     }
     /**
      * @returns {string}
@@ -369,6 +379,19 @@ export class Square {
         } finally {
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
+    }
+    solve() {
+        wasm.square_solve(this.__wbg_ptr);
+    }
+    /**
+     * @returns {SquareState}
+     */
+    state() {
+        const ret = wasm.square_state(this.__wbg_ptr);
+        return ret;
+    }
+    toggle() {
+        wasm.square_toggle(this.__wbg_ptr);
     }
 }
 
@@ -442,9 +465,6 @@ function __wbg_get_imports() {
         }
         const ret = result;
         return ret;
-    };
-    imports.wbg.__wbg_log_74145fe79cc08388 = function(arg0, arg1) {
-        console.log(getStringFromWasm0(arg0, arg1));
     };
     imports.wbg.__wbg_newnoargs_105ed471475aaf50 = function(arg0, arg1) {
         const ret = new Function(getStringFromWasm0(arg0, arg1));
