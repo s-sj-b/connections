@@ -10,6 +10,9 @@ pub struct Answer {
     values: Vec<String>,
 }
 
+/// Answers are groups of four values (the text in the webpage boxes) that belong to the same 
+/// AnswerGroup (e.g., Yellow, Green). This struct stores collects the AnswerGroup, description,
+/// and a Vec<String> with the answer values for easy operability.
 #[wasm_bindgen]
 impl Answer {
     pub fn new(group: String, description: String, values: Vec<String>) -> Result<Self, String> {
@@ -29,6 +32,12 @@ impl Answer {
     }
 }
 
+/// Handles the state of the AnswerGrid and interoperability with the JavaScript.
+/// 
+/// Since `selected` stores positions of the selected squares within the `squares` vector,
+/// `width` and `height` are needed to calculate from the from the grid row and column.
+/// 
+/// `lives` tracks how many incorrect guesses have been submitted.
 #[wasm_bindgen]
 pub struct AnswerGrid {
 
@@ -82,6 +91,11 @@ impl AnswerGrid {
         }
     }
 
+    /// When an incorrect guess is submitted, remove a life.
+    /// 
+    /// Uses web_sys to update the `lives-counter` div with the correct number of hearts.
+    /// 
+    /// TODO: UI overhaul. 
     fn lose_life(&mut self) -> bool {
         self.lives -= 1;
 
@@ -98,6 +112,10 @@ impl AnswerGrid {
         self.lives < 1
     }
 
+    /// Handles the creation and updating of elements within the webpage.
+    /// 
+    /// Creates the `grid-container` div on the webpage and populates it with `Square` instances
+    /// containing the answer information.
     pub fn setup(&mut self) -> Result<(), JsValue> {
 
         let document = web_sys::window()
@@ -148,12 +166,16 @@ impl AnswerGrid {
         Ok(())
     }
 
+    /// Returns a `String` of `n` hearts, where `n` is the number of lives remaining.
     pub fn lives_string(&self) -> String {
         let life_char = "&#9829;";
         (0..self.lives).map(|_| life_char).collect()
     }
 
-
+    /// Submits the selected squares for review.
+    /// 
+    /// If the selection is invalid (fewer than 4 were chosen), returns `None`. 
+    /// If the selection was valid, returns `Some(true)` if the selection was correct, or `Some(false)` if it was not.
     pub fn submit_selection(&mut self) -> Option<bool> {
         if self.selected.len() < 4 || self.lives < 1 {
             return None 

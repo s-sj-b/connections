@@ -1,6 +1,6 @@
-import init, { AnswerGrid, Answer, Square } from '../pkg/connections.js';
+import init, { AnswerGrid, Answer } from '../pkg/connections.js';
 
-const wasm = await init();
+let wasm = await init();
 
 const WIDTH = 4;
 const HEIGHT = 4;
@@ -48,7 +48,10 @@ const ANSWERS = [
     },
 ];
 
-let answers = ANSWERS.map((a) => { Answer.new(a.group, a.description, a.answers) });
+let answers = [];
+ANSWERS.forEach(a => {
+    answers.push(Answer.new(a.group, a.description, a.answers));
+});
 const answerGrid = AnswerGrid.new(WIDTH, HEIGHT, answers);
 answerGrid.setup();
 
