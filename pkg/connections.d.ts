@@ -8,14 +8,47 @@ export enum AnswerGroup {
   Blue = 2,
   Purple = 3,
 }
+export enum SquareState {
+  Plain = 0,
+  Selected = 1,
+  Answered = 2,
+}
+export class Answer {
+  private constructor();
+  free(): void;
+  static new(group: string, description: string, values: string[]): Answer;
+}
+/**
+ * Handles the state of the AnswerGrid and interoperability with the JavaScript.
+ * 
+ * Since `selected` stores positions of the selected squares within the `squares` vector,
+ * `width` and `height` are needed to calculate from the from the grid row and column.
+ * 
+ * `lives` tracks how many incorrect guesses have been submitted.
+ */
 export class AnswerGrid {
   private constructor();
   free(): void;
-  static new(width: number, height: number): AnswerGrid;
-  setup(): void;
+  /**
+   * Returns a `String` of `n` hearts, where `n` is the number of lives remaining.
+   */
   lives_string(): string;
-  submit_selection(): boolean | undefined;
   toggle_square(x: number, y: number): void;
+  /**
+   * Submits the selected squares for review.
+   * 
+   * If the selection is invalid (fewer than 4 were chosen), returns `None`. 
+   * If the selection was valid, returns `Some(true)` if the selection was correct, or `Some(false)` if it was not.
+   */
+  submit_selection(): boolean | undefined;
+  static new(width: number, height: number, answer_groups: Answer[]): AnswerGrid;
+  /**
+   * Handles the creation and updating of elements within the webpage.
+   * 
+   * Creates the `grid-container` div on the webpage and populates it with `Square` instances
+   * containing the answer information.
+   */
+  setup(): void;
   width(): number;
   height(): number;
   get_idx(width: number, height: number): number;
@@ -23,43 +56,49 @@ export class AnswerGrid {
 export class Square {
   private constructor();
   free(): void;
-  static new(x: number, y: number, answer_group: AnswerGroup, text: string): Square;
-  id(): string;
-  toggle(): void;
-  solve(): void;
+  answer_group(): AnswerGroup;
   update_color(): void;
+  id(): string;
+  static new(x: number, y: number, answer_group: AnswerGroup, text: string): Square;
   text(): string;
+  solve(): void;
+  state(): SquareState;
+  toggle(): void;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly greet: (a: number, b: number) => void;
+  readonly __wbg_answer_free: (a: number, b: number) => void;
   readonly __wbg_answergrid_free: (a: number, b: number) => void;
-  readonly remove_element_by_id: (a: number, b: number) => void;
-  readonly answergrid_new: (a: number, b: number) => number;
-  readonly answergrid_setup: (a: number) => [number, number];
+  readonly answer_new: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+  readonly answergrid_get_idx: (a: number, b: number, c: number) => number;
+  readonly answergrid_height: (a: number) => number;
   readonly answergrid_lives_string: (a: number) => [number, number];
+  readonly answergrid_new: (a: number, b: number, c: number, d: number) => number;
+  readonly answergrid_setup: (a: number) => [number, number];
   readonly answergrid_submit_selection: (a: number) => number;
   readonly answergrid_toggle_square: (a: number, b: number, c: number) => void;
   readonly answergrid_width: (a: number) => number;
-  readonly answergrid_height: (a: number) => number;
-  readonly answergrid_get_idx: (a: number, b: number, c: number) => number;
   readonly __wbg_square_free: (a: number, b: number) => void;
-  readonly square_new: (a: number, b: number, c: number, d: number, e: number) => number;
+  readonly greet: (a: number, b: number) => void;
+  readonly remove_element_by_id: (a: number, b: number) => void;
+  readonly square_answer_group: (a: number) => number;
   readonly square_id: (a: number) => [number, number];
-  readonly square_toggle: (a: number) => void;
+  readonly square_new: (a: number, b: number, c: number, d: number, e: number) => number;
   readonly square_solve: (a: number) => void;
-  readonly square_update_color: (a: number) => void;
+  readonly square_state: (a: number) => number;
   readonly square_text: (a: number) => [number, number];
+  readonly square_toggle: (a: number) => void;
+  readonly square_update_color: (a: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __externref_table_alloc: () => number;
   readonly __wbindgen_export_2: WebAssembly.Table;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
-  readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+  readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_start: () => void;
 }
 

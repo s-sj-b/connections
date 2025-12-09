@@ -166,6 +166,22 @@ function getDataViewMemory0() {
     }
     return cachedDataViewMemory0;
 }
+
+function passArrayJsValueToWasm0(array, malloc) {
+    const ptr = malloc(array.length * 4, 4) >>> 0;
+    for (let i = 0; i < array.length; i++) {
+        const add = addToExternrefTable0(array[i]);
+        getDataViewMemory0().setUint32(ptr + 4 * i, add, true);
+    }
+    WASM_VECTOR_LEN = array.length;
+    return ptr;
+}
+
+function takeFromExternrefTable0(idx) {
+    const value = wasm.__wbindgen_export_2.get(idx);
+    wasm.__externref_table_dealloc(idx);
+    return value;
+}
 /**
  * @param {string} s
  */
@@ -184,11 +200,6 @@ export function remove_element_by_id(id) {
     wasm.remove_element_by_id(ptr0, len0);
 }
 
-function takeFromExternrefTable0(idx) {
-    const value = wasm.__wbindgen_export_2.get(idx);
-    wasm.__externref_table_dealloc(idx);
-    return value;
-}
 /**
  * @enum {0 | 1 | 2 | 3}
  */
@@ -198,11 +209,79 @@ export const AnswerGroup = Object.freeze({
     Blue: 2, "2": "Blue",
     Purple: 3, "3": "Purple",
 });
+/**
+ * @enum {0 | 1 | 2}
+ */
+export const SquareState = Object.freeze({
+    Plain: 0, "0": "Plain",
+    Selected: 1, "1": "Selected",
+    Answered: 2, "2": "Answered",
+});
+
+const AnswerFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_answer_free(ptr >>> 0, 1));
+
+export class Answer {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(Answer.prototype);
+        obj.__wbg_ptr = ptr;
+        AnswerFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    static __unwrap(jsValue) {
+        if (!(jsValue instanceof Answer)) {
+            return 0;
+        }
+        return jsValue.__destroy_into_raw();
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        AnswerFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_answer_free(ptr, 0);
+    }
+    /**
+     * @param {string} group
+     * @param {string} description
+     * @param {string[]} values
+     * @returns {Answer}
+     */
+    static new(group, description, values) {
+        const ptr0 = passStringToWasm0(group, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(description, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ptr2 = passArrayJsValueToWasm0(values, wasm.__wbindgen_malloc);
+        const len2 = WASM_VECTOR_LEN;
+        const ret = wasm.answer_new(ptr0, len0, ptr1, len1, ptr2, len2);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return Answer.__wrap(ret[0]);
+    }
+}
 
 const AnswerGridFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_answergrid_free(ptr >>> 0, 1));
-
+/**
+ * Handles the state of the AnswerGrid and interoperability with the JavaScript.
+ *
+ * Since `selected` stores positions of the selected squares within the `squares` vector,
+ * `width` and `height` are needed to calculate from the from the grid row and column.
+ *
+ * `lives` tracks how many incorrect guesses have been submitted.
+ */
 export class AnswerGrid {
 
     static __wrap(ptr) {
@@ -225,21 +304,7 @@ export class AnswerGrid {
         wasm.__wbg_answergrid_free(ptr, 0);
     }
     /**
-     * @param {number} width
-     * @param {number} height
-     * @returns {AnswerGrid}
-     */
-    static new(width, height) {
-        const ret = wasm.answergrid_new(width, height);
-        return AnswerGrid.__wrap(ret);
-    }
-    setup() {
-        const ret = wasm.answergrid_setup(this.__wbg_ptr);
-        if (ret[1]) {
-            throw takeFromExternrefTable0(ret[0]);
-        }
-    }
-    /**
+     * Returns a `String` of `n` hearts, where `n` is the number of lives remaining.
      * @returns {string}
      */
     lives_string() {
@@ -255,6 +320,17 @@ export class AnswerGrid {
         }
     }
     /**
+     * @param {number} x
+     * @param {number} y
+     */
+    toggle_square(x, y) {
+        wasm.answergrid_toggle_square(this.__wbg_ptr, x, y);
+    }
+    /**
+     * Submits the selected squares for review.
+     *
+     * If the selection is invalid (fewer than 4 were chosen), returns `None`.
+     * If the selection was valid, returns `Some(true)` if the selection was correct, or `Some(false)` if it was not.
      * @returns {boolean | undefined}
      */
     submit_selection() {
@@ -262,11 +338,28 @@ export class AnswerGrid {
         return ret === 0xFFFFFF ? undefined : ret !== 0;
     }
     /**
-     * @param {number} x
-     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {Answer[]} answer_groups
+     * @returns {AnswerGrid}
      */
-    toggle_square(x, y) {
-        wasm.answergrid_toggle_square(this.__wbg_ptr, x, y);
+    static new(width, height, answer_groups) {
+        const ptr0 = passArrayJsValueToWasm0(answer_groups, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.answergrid_new(width, height, ptr0, len0);
+        return AnswerGrid.__wrap(ret);
+    }
+    /**
+     * Handles the creation and updating of elements within the webpage.
+     *
+     * Creates the `grid-container` div on the webpage and populates it with `Square` instances
+     * containing the answer information.
+     */
+    setup() {
+        const ret = wasm.answergrid_setup(this.__wbg_ptr);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
+        }
     }
     /**
      * @returns {number}
@@ -319,17 +412,14 @@ export class Square {
         wasm.__wbg_square_free(ptr, 0);
     }
     /**
-     * @param {number} x
-     * @param {number} y
-     * @param {AnswerGroup} answer_group
-     * @param {string} text
-     * @returns {Square}
+     * @returns {AnswerGroup}
      */
-    static new(x, y, answer_group, text) {
-        const ptr0 = passStringToWasm0(text, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.square_new(x, y, answer_group, ptr0, len0);
-        return Square.__wrap(ret);
+    answer_group() {
+        const ret = wasm.square_answer_group(this.__wbg_ptr);
+        return ret;
+    }
+    update_color() {
+        wasm.square_update_color(this.__wbg_ptr);
     }
     /**
      * @returns {string}
@@ -346,14 +436,18 @@ export class Square {
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
     }
-    toggle() {
-        wasm.square_toggle(this.__wbg_ptr);
-    }
-    solve() {
-        wasm.square_solve(this.__wbg_ptr);
-    }
-    update_color() {
-        wasm.square_update_color(this.__wbg_ptr);
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {AnswerGroup} answer_group
+     * @param {string} text
+     * @returns {Square}
+     */
+    static new(x, y, answer_group, text) {
+        const ptr0 = passStringToWasm0(text, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.square_new(x, y, answer_group, ptr0, len0);
+        return Square.__wrap(ret);
     }
     /**
      * @returns {string}
@@ -369,6 +463,19 @@ export class Square {
         } finally {
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
+    }
+    solve() {
+        wasm.square_solve(this.__wbg_ptr);
+    }
+    /**
+     * @returns {SquareState}
+     */
+    state() {
+        const ret = wasm.square_state(this.__wbg_ptr);
+        return ret;
+    }
+    toggle() {
+        wasm.square_toggle(this.__wbg_ptr);
     }
 }
 
@@ -409,6 +516,10 @@ function __wbg_get_imports() {
     imports.wbg.__wbg_alert_257d4e89e3059919 = function(arg0, arg1) {
         alert(getStringFromWasm0(arg0, arg1));
     };
+    imports.wbg.__wbg_answer_unwrap = function(arg0) {
+        const ret = Answer.__unwrap(arg0);
+        return ret;
+    };
     imports.wbg.__wbg_appendChild_8204974b7328bf98 = function() { return handleError(function (arg0, arg1) {
         const ret = arg0.appendChild(arg1);
         return ret;
@@ -442,9 +553,6 @@ function __wbg_get_imports() {
         }
         const ret = result;
         return ret;
-    };
-    imports.wbg.__wbg_log_74145fe79cc08388 = function(arg0, arg1) {
-        console.log(getStringFromWasm0(arg0, arg1));
     };
     imports.wbg.__wbg_newnoargs_105ed471475aaf50 = function(arg0, arg1) {
         const ret = new Function(getStringFromWasm0(arg0, arg1));
@@ -508,6 +616,18 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_is_undefined = function(arg0) {
         const ret = arg0 === undefined;
+        return ret;
+    };
+    imports.wbg.__wbindgen_string_get = function(arg0, arg1) {
+        const obj = arg1;
+        const ret = typeof(obj) === 'string' ? obj : undefined;
+        var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
+        getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
+    };
+    imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
+        const ret = getStringFromWasm0(arg0, arg1);
         return ret;
     };
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {

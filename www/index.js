@@ -1,14 +1,58 @@
-import init, { AnswerGrid, Square } from '../pkg/connections.js';
+import init, { AnswerGrid, Answer } from '../pkg/connections.js';
 
-const wasm = await init();
+let wasm = await init();
 
 const WIDTH = 4;
 const HEIGHT = 4;
-const CELL_WIDTH = 100;
-const CELL_HEIGHT = 100;
 
-// once wasm has loaded, do stuff ...
-const answerGrid = AnswerGrid.new(WIDTH, HEIGHT);
+const ANSWERS = [
+    {
+        group: "yellow",
+        description: "ANAGRAMS",
+        answers: [
+            "NAMED",
+            "AMEND",
+            "ADMEN",
+            "MANED"
+        ]
+    },
+    {
+        group: "green",
+        description: "BLOCK UP",
+        answers: [
+            "DAM",
+            "CHOKE",
+            "CONGEST",
+            "OCCLUDE"
+        ]
+    },
+    {
+        group: "blue",
+        description: "ENDING IN WORDS FOR COUNTRY",
+        answers: [
+            "DAMNATION",
+            "GESTATE",
+            "ISOPOLITY",
+            "HIGHLAND"
+        ]
+    },
+    {
+        group: "purple",
+        description: "CONTAINING SYNONYMS FOR SOAK",
+        answers: [
+            "ISOPODA",
+            "STEEPLE",
+            "DIPED",
+            "RETURN"
+        ]
+    },
+];
+
+let answers = [];
+ANSWERS.forEach(a => {
+    answers.push(Answer.new(a.group, a.description, a.answers));
+});
+const answerGrid = AnswerGrid.new(WIDTH, HEIGHT, answers);
 answerGrid.setup();
 
 
