@@ -1,4 +1,4 @@
-import init, { AnswerGrid, Answer } from '../pkg/connections.js';
+import init, { AnswerGrid, Answer } from '/pkg/connections.js';
 
 let wasm = await init();
 
@@ -7,7 +7,7 @@ const HEIGHT = 4;
 
 const ANSWERS = [
     {
-        group: "yellow",
+        group: "easy",
         description: "ANAGRAMS",
         answers: [
             "NAMED",
@@ -17,7 +17,7 @@ const ANSWERS = [
         ]
     },
     {
-        group: "green",
+        group: "medium",
         description: "BLOCK UP",
         answers: [
             "DAM",
@@ -27,7 +27,7 @@ const ANSWERS = [
         ]
     },
     {
-        group: "blue",
+        group: "hard",
         description: "ENDING IN WORDS FOR COUNTRY",
         answers: [
             "DAMNATION",
@@ -37,7 +37,7 @@ const ANSWERS = [
         ]
     },
     {
-        group: "purple",
+        group: "very-hard",
         description: "CONTAINING SYNONYMS FOR SOAK",
         answers: [
             "ISOPODA",
