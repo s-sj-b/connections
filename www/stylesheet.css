@@ -3,8 +3,9 @@
     --cell-width: 100px;
     --cell-height: 100px;
     --cell-margin:  10px;
+    --button-clicked-scale: 120%;
     --grid-column-width: calc(var(--cell-width) + var(--cell-margin));
-    --grid-width: calc(4 * (var(--cell-width) + var(--cell-margin)));
+    
     --grid-height: calc(4 * (var(--cell-height) + var(--cell-margin)));
 
     --button-width: 75px;
@@ -65,22 +66,40 @@ div.button-selected {
     line-height: var(--cell-height);
     margin: var(--cell-margin);
     border-radius: var(--cell-margin);
+    /* animation: buttonClicked; */
+    /* animation-duration: 0.5s; */
 }
 
 div.button:hover {
     background-color: #aaa;
 }
 
+/* 
+ Animate clicked buttons to grow and shrink again 
+ when submitting answer.
+*/
+@keyframes buttonClicked {
+    from { width: var(--cell-width); height: var(--cell-height); }
+    to { width: calc(var(--cell-width) * var(--button-clicked-scale)); height: calc(var(--cell-height) * var(--button-clicked-scale)); }
+}
+
 div.button-solved {
     width: calc(4 * var(--cell-width) + 3 * var(--cell-margin));
     height: var(--cell-height);
     grid-column: span 4;
-    text-align: center;
-    vertical-align: middle;
-    line-height: var(--cell-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
     margin: var(--cell-margin);
     margin-bottom: 0px;
     border-radius: var(--cell-margin);
+}
+
+p {
+    font-size: 11px;
+    width: auto;
+    height: 20px;
 }
 
 #lives-counter {

@@ -1,6 +1,5 @@
-
-use wasm_bindgen::prelude::*;
 use crate::utils;
+use wasm_bindgen::prelude::*;
 
 #[derive(Copy, Clone, Debug)]
 #[wasm_bindgen]
@@ -60,14 +59,6 @@ impl Square {
 
     pub fn solve(&mut self) {
         self.state = SquareState::Answered;
-        
-        // set the html element to the answer group color
-        let color = match self.answer_group {
-            utils::AnswerGroup::Yellow => utils::SQUARE_YELLOW,
-            utils::AnswerGroup::Green => utils::SQUARE_GREEN,
-            utils::AnswerGroup::Blue => utils::SQUARE_BLUE,
-            utils::AnswerGroup::Purple => utils::SQUARE_PURPLE,
-        };
 
         let square_id = self.id();
         let square = web_sys::window()
@@ -76,12 +67,17 @@ impl Square {
             .expect("")
             .get_element_by_id(&square_id)
             .unwrap();
-        square.set_attribute("style", &format!("background-color: #{:x}", color)).expect("");
+        square
+            .set_attribute(
+                "style",
+                &format!("background-color: #{:x}", self.answer_group.color()),
+            )
+            .expect("");
 
         let doc = web_sys::window().expect("").document().expect("");
         let grid_container = doc.get_element_by_id("grid-container").unwrap();
         let node = doc.get_element_by_id(&square_id).unwrap();
-        grid_container.remove_child(&node);
+        grid_container.remove_child(&node).unwrap();
         // console_log!("removed {:?}", node);
     }
 

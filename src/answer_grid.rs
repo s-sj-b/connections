@@ -1,7 +1,7 @@
-
-use wasm_bindgen::prelude::*;
 use crate::square::*;
 use crate::utils;
+use wasm_bindgen::prelude::*;
+use crate::html::*;
 
 #[wasm_bindgen]
 pub struct Answer {
@@ -10,17 +10,17 @@ pub struct Answer {
     values: Vec<String>,
 }
 
-/// Answers are groups of four values (the text in the webpage boxes) that belong to the same 
+/// Answers are groups of four values (the text in the webpage boxes) that belong to the same
 /// AnswerGroup (e.g., Yellow, Green). This struct stores collects the AnswerGroup, description,
 /// and a Vec<String> with the answer values for easy operability.
 #[wasm_bindgen]
 impl Answer {
     pub fn new(group: String, description: String, values: Vec<String>) -> Result<Self, String> {
         let group = match group.as_str() {
-            "yellow" | "YELLOW" => utils::AnswerGroup::Yellow,
-            "green" | "GREEN" => utils::AnswerGroup::Green,
-            "blue" | "BLUE" => utils::AnswerGroup::Blue,
-            "purple" | "PURPLE" => utils::AnswerGroup::Purple,
+            "easy"      => utils::AnswerGroup::Easy,
+            "medium"    => utils::AnswerGroup::Medium,
+            "hard"      => utils::AnswerGroup::Hard,
+            "very-hard" => utils::AnswerGroup::VeryHard,
             _ => return Err("Invalid AnswerGroup".to_string()),
         };
 
@@ -30,28 +30,56 @@ impl Answer {
             values,
         })
     }
+
+    pub fn group_string(&self) -> String {
+        self.group.to_string()
+    }
+
+    pub fn description(&self) -> String {
+        self.description.clone()
+    }
+
+    pub fn values(&self) -> Vec<String> {
+        self.values.clone()
+    }
+
+    /// Format the answer values into a comma-separated string to be displayed in p-tag
+    /// in the answered div container.
+    ///  
+    /// NOTE: There is probably a better way to do this
+    pub fn values_to_string(&self) -> String {
+        let mut string = String::new();
+        for (i, v) in self.values.iter().enumerate() {
+            string.push_str(v);
+
+            // push a ", " to separate the answers UNLESS it is the last answer
+            if i < self.values.len() - 1 {
+                string.push_str(", ");
+            }
+        }
+        string
+    }
 }
 
 /// Handles the state of the AnswerGrid and interoperability with the JavaScript.
-/// 
+///
 /// Since `selected` stores positions of the selected squares within the `squares` vector,
 /// `width` and `height` are needed to calculate from the from the grid row and column.
-/// 
+///
 /// `lives` tracks how many incorrect guesses have been submitted.
 #[wasm_bindgen]
 pub struct AnswerGrid {
-
     width: usize,
     height: usize,
 
     squares: Vec<Square>,
+    answers: Vec<Answer>,
 
     // selected is a vector of indices which point to squares in
     // `self.squares`
     selected: Vec<usize>,
     lives: usize,
     solved_count: usize,
-
 }
 
 #[wasm_bindgen]
@@ -59,13 +87,13 @@ impl AnswerGrid {
     pub fn new(width: usize, height: usize, answer_groups: Vec<Answer>) -> Self {
         // create a scrambled array of indices for the squares
         // so that we can assign each square its data
-        let mut square_idcs: Vec<(usize, usize)> = (0..width*height).map(|i| (i % width, i / height)).collect();
-
+        let mut square_idcs: Vec<(usize, usize)> = (0..width * height)
+            .map(|i| (i % width, i / height))
+            .collect();
 
         let mut squares: Vec<Square> = Vec::new();
         for x in 0..width {
             for y in 0..height {
-
                 // grab the data from the answers list and create the square with it
                 let retrieval_idx = (square_idcs.len() as f32 * utils::random()).floor() as usize;
                 let (group_idx, data_idx) = square_idcs[retrieval_idx];
@@ -84,6 +112,7 @@ impl AnswerGrid {
             height,
 
             squares,
+            answers: answer_groups,
 
             selected: Vec::with_capacity(4),
             lives: 4,
@@ -92,10 +121,10 @@ impl AnswerGrid {
     }
 
     /// When an incorrect guess is submitted, remove a life.
-    /// 
+    ///
     /// Uses web_sys to update the `lives-counter` div with the correct number of hearts.
-    /// 
-    /// TODO: UI overhaul. 
+    ///
+    /// TODO: UI overhaul.
     fn lose_life(&mut self) -> bool {
         self.lives -= 1;
 
@@ -108,25 +137,24 @@ impl AnswerGrid {
             .unwrap();
 
         lc.set_inner_html(&self.lives_string());
-        
+
         self.lives < 1
     }
 
     /// Handles the creation and updating of elements within the webpage.
-    /// 
+    ///
     /// Creates the `grid-container` div on the webpage and populates it with `Square` instances
     /// containing the answer information.
     pub fn setup(&mut self) -> Result<(), JsValue> {
-
         let document = web_sys::window()
             .expect("could not find the window")
             .document()
             .expect("could not find the document");
 
-        let body = document.body()
-            .expect("could not find document body");
+        let body = document.body().expect("could not find document body");
 
-        let grid_container = document.create_element("div")
+        let grid_container = document
+            .create_element("div")
             .expect("failed to create grid-container");
 
         grid_container.set_id("grid-container");
@@ -173,48 +201,59 @@ impl AnswerGrid {
     }
 
     /// Submits the selected squares for review.
-    /// 
-    /// If the selection is invalid (fewer than 4 were chosen), returns `None`. 
+    ///
+    /// If the selection is invalid (fewer than 4 were chosen), returns `None`.
     /// If the selection was valid, returns `Some(true)` if the selection was correct, or `Some(false)` if it was not.
     pub fn submit_selection(&mut self) -> Option<bool> {
         if self.selected.len() < 4 || self.lives < 1 {
-            return None 
+            return None;
         }
-        
+
+        // Check that all the values in the selected squares are within the same answer group
         let check_group = self.squares[self.selected[0]].answer_group();
-        let selected_squares = self.selected.iter().all(|i| self.squares[*i].answer_group() == check_group);
+        let selected_squares = self
+            .selected
+            .iter()
+            .all(|i| self.squares[*i].answer_group() == check_group);
 
         if selected_squares {
+            // If all the squares are part of the same group, update the table
+            // by getting the answers for those squares
+            let answer = self
+                .answers
+                .iter()
+                .find(|a| a.group == check_group)
+                .unwrap();
+
             // update the squares to answered and change their colors
-            let mut answer_group = utils::AnswerGroup::Yellow;
-            let mut answer_desc = String::new();
             for square_idx in self.selected.iter() {
                 self.squares[*square_idx].solve();
-                answer_group = self.squares[*square_idx].answer_group();
-                answer_desc = utils::ANSWERS.iter()
-                    .find(|x| x.0 == answer_group)
-                    .unwrap()
-                    .1
-                    .to_uppercase();
 
-
+                // grab the answer description for the corresponding answer group
                 // let square_id = self.squares[*square_idx].id();
                 // remove_element_by_id(&square_id);
                 // console_log!("removed {}", square_id);
             }
 
-            // create a new div for the answered group
-            let doc = web_sys::window().expect("")
-                .document().expect("");
-            let answered_div = doc
-                .create_element("div").expect("");
-            answered_div.set_class_name("button-solved");
-            let color = answer_group.color();
-            answered_div.set_attribute("style", &format!("background-color: #{:x};order:{}", color, self.solved_count))
-                .unwrap();
-            answered_div.set_inner_html(&answer_desc);
-                
-            doc.get_element_by_id("grid-container").unwrap().append_child(&answered_div)
+            // create a new div for the answered group with INNER HTML set to the
+            // answer group's description
+            // and a <p> within containing a list of the selected answers
+            // Create 3 tags:
+            // - <b>{answer.description}</b>
+            // - <p>{list of the answer values}</p>
+            // - <div> to contain the above two </div>
+            // To be displayed like so:
+            // <div>
+            //      <b>{answer.description}</b>
+            //      <p>{list of answer values, separated by commans}</p>
+            // </div>
+            let doc = web_sys::window().expect("").document().expect("");
+
+            let answer_html_instance = HtmlParser::answer_to_element(&answer, &doc).unwrap();
+
+            doc.get_element_by_id("grid-container")
+                .unwrap()
+                .append_child(&answer_html_instance)
                 .unwrap();
 
             self.selected = vec![];
@@ -230,10 +269,9 @@ impl AnswerGrid {
 
     // #[wasm_bindgen]
     pub fn toggle_square(&mut self, x: usize, y: usize) {
-        
-        // only toggle the square state if we have 
+        // only toggle the square state if we have
         // "space" in our seletion
-        
+
         let idx = self.get_idx(x, y);
 
         match self.squares[idx].state() {
@@ -243,14 +281,18 @@ impl AnswerGrid {
                     self.selected.push(idx);
                     self.squares[idx].toggle();
                 }
-            },
+            }
             SquareState::Selected => {
                 let point = self.get_idx(x, y);
-                let rem_idx = self.selected.iter().position(|s_id| s_id == &point).unwrap();
+                let rem_idx = self
+                    .selected
+                    .iter()
+                    .position(|s_id| s_id == &point)
+                    .unwrap();
                 self.selected.remove(rem_idx);
                 self.squares[idx].toggle();
-            },
-            _ => {},
+            }
+            _ => {}
         }
 
         // console_log!("{:?}", self.selected);
@@ -265,6 +307,6 @@ impl AnswerGrid {
     }
 
     pub fn get_idx(&self, width: usize, height: usize) -> usize {
-        return width + height * self.width()
+        return width + height * self.width();
     }
 }
