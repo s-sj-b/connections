@@ -45,6 +45,7 @@ pub struct AnswerGrid {
     height: usize,
 
     squares: Vec<Square>,
+    answers: Vec<Answer>,
 
     // selected is a vector of indices which point to squares in
     // `self.squares`
@@ -84,6 +85,7 @@ impl AnswerGrid {
             height,
 
             squares,
+            answers: answer_groups,
 
             selected: Vec::with_capacity(4),
             lives: 4,
@@ -191,11 +193,9 @@ impl AnswerGrid {
             for square_idx in self.selected.iter() {
                 self.squares[*square_idx].solve();
                 answer_group = self.squares[*square_idx].answer_group();
-                answer_desc = utils::ANSWERS.iter()
-                    .find(|x| x.0 == answer_group)
-                    .unwrap()
-                    .1
-                    .to_uppercase();
+
+                // grab the answer description for the corresponding answer group
+                answer_desc = self.answers.iter().find(|answer| answer.group == answer_group).unwrap().description.to_uppercase();
 
 
                 // let square_id = self.squares[*square_idx].id();

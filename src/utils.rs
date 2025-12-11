@@ -39,18 +39,3 @@ impl AnswerGroup {
         }
     }
 }
-
-pub const ANSWERS: [(AnswerGroup, &str, [&str; 4]); 4] = [
-    (AnswerGroup::Yellow, "Reversible Letters", [
-        "Y", "O", "M", "H"
-    ]),
-    (AnswerGroup::Green, "Text Abbreviations", [
-        "TTYL", "IYKYK", "ROFL", "LOL"
-    ]),
-    (AnswerGroup::Purple, "Firsts", [
-        "Melania Trump", "January", "A", "1"
-    ]),
-    (AnswerGroup::Blue, "Names for People and Months", [
-        "August", "May", "April", "Julio"
-    ])
-];
